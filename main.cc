@@ -26,6 +26,18 @@ int main()
 {
     ////////// LECTURA DE DATOS INICIAL //////////
 
+vector<int> extraerelementos(const vector<int>& entrada) {
+    vector<int> pistas;
+
+    int n = entrada[0] 
+    if (n > 0 and n <= (entrada.size() - 1)) {
+        for (int i = 1; i <= n; ++i) {
+            pistas.push_back(entrada[i]);
+        }
+    }
+
+    return pistas;
+}
 
     //////////// LOGICA DEL JUEGO ///////////////
 
