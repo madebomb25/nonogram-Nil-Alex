@@ -27,50 +27,7 @@ char ask_option()
     // Hacer código para mostrar las opciones disponibles y que hacen.
     //////////////////////////////////////////////////////////////////
 
-    if (option == 'A')
-    {
-
-    }
-    else if (option == 'B')
-    {
-
-    }
-    else if (option == 'E')
-    {
-
-    }
-    else if (option == 'F')
-    {
-
-    }
-    else if (option == 'R')
-    {
-
-    }
-    else if (option == 'S')
-    {
-
-    }
-    else if (option == 'Z')
-    {
-
-    }
-}
-
-//Genera un subvector con los numeros para imprimir de cada pista
-//Pre: un vector de enteros en el que el primero marca el numero de nombres que le siguen
-//Post: Un subvector de enteros de estos nombres del vector incial menos el primero
-vector<int> extraerelementos(const vector<int>& entrada) {
-    vector<int> pistas;
-
-    int n = entrada[0] 
-    if (n > 0 and n <= (entrada.size() - 1)) {
-        for (int i = 1; i <= n; ++i) {
-            pistas.push_back(entrada[i]);
-        }
-    }
-
-    return pistas;
+    return option;
 }
 
 void print_board(CharMatrix board)
