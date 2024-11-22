@@ -3,6 +3,9 @@
 using namespace std;
 
 int main () {
-  cout << "Face" << endl;
+int n;
+while (cin >> n)
+unsigned int cuantaspruebas = n;
+cout << "Face" << endl;
 }
 
