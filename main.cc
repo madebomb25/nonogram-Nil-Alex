@@ -47,7 +47,23 @@ void print_board(CharMatrix board)
 int main()
 {
     ////////// LECTURA DE DATOS INICIAL //////////
-
+    unsigned int num_filas, num_columnas;
+    unsigned int n;
+    unsigned int i = 0;
+    unsigned int p = 0;
+    unsigned int s = 0;
+    while (cin >> n) {
+        if (i == 0) int num_pistas = n;
+        else {
+            while (cin >> n and p <= num_pistas-1) {
+            vector[s] = n; //A modificar "vector" para inserir los valores en 
+                           //la matriz que guarda las pistas 
+            ++s;
+            ++p;
+            }
+            i = 0;   
+        }
+    }
 
     //////////// LOGICA DEL JUEGO ///////////////
 
