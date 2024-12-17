@@ -23,6 +23,18 @@ int main()
         }
     }
 
+//Comptar dígits d'un nombre natural
+    unsigned int count_digits(unsigned int &n) {
+    	unsigned int count = 0;
+    
+    	unsigned int xifra = n;
+    	while (xifra > 0) {
+    		++count;
+    		xifra = xifra/10;
+    	}
+    
+    	return count;
+    }
     //////////// LOGICA DEL JUEGO ///////////////
 
     bool player_won = false;
