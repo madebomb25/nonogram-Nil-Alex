@@ -73,6 +73,28 @@ void print_board_top(unsigned int board_size_x, unsigned int board_size_y)
 void print_board_bottom(unsigned int board_size_x, unsigned int board_size_y, UIntMatrix& col_clues)
 {
    print_horizontal_lines(board_size_x, board_size_y);
+   
+   // Añadir función que ponga los espacios.
+   unsigned int row = 0;
+   bool exit = false;
+   while(not exit)
+   {
+	   // Inv:
+	   
+	   exit = true;
+	   for (unsigned int col=0; col < board_size_y; ++col)
+	   {
+		   //Inv:
+		   
+		   if (())
+	   }
+	   
+	   
+	   ++row;
+   }
+   
+   
+   
 }
 
 // Imprime el estado actual de la partida.
