@@ -26,7 +26,8 @@ unsigned int count_digits(unsigned int n)
 }
 
 // Encuentra el largo del vector de pistas más grande de una matriz de pistas UIntMatrix.
-// Pre: una matriz CharMatrix que contenga los vectores de pistas a comparar.
+// Pre: una matriz CharMatrix que contenga los vectores de pistas a comparar. La matriz no debe estar vacía y debe contener
+// un vector de pistas como mínimo.
 // Pos: devuelve un número natural que indica el tamaño del vector de pistas más grande encontrado.
 unsigned int find_biggest_clue_size(const UIntMatrix &clue_matrix)
 {
@@ -46,16 +47,18 @@ unsigned int find_biggest_clue_size(const UIntMatrix &clue_matrix)
    return biggest_clue_vector_size;
 }
 
-//
-// Pre:
-// Post:
+// Construye un vector de pistas.
+// Pre: la cantidad de pistas que construiremos (no confundir la cantidad de grupos/elementos de dentro de la pista), representadas
+// por un número natural.
+// Post: devuelve una matriz UIntMatrix que contiene 'clue_package_size' pistas.
 UIntMatrix built_clues(unsigned int clue_package_size)
 {
    UIntMatrix new_clue_package(clue_package_size);
 
-   // Inv: hemos guardado i-1 pistas completas en el paquete de pistas 'new_clue_package'.
    for (unsigned int i = 0; i < clue_package_size; ++i)
    {
+      // Inv: hemos guardado i-1 pistas completas en el paquete de pistas 'new_clue_package'.
+
       unsigned int clue_size;
       cin >> clue_size;
 
@@ -85,22 +88,8 @@ string gen_horizontal_line(unsigned int board_size_x, unsigned int board_size_y)
    string slash_line = "";
 
    // Añadimos el espacio en blanco que separa las líneas de la leyenda de las filas.
-   slash_line += string(count_digits(board_size_y), ' ');
-
-   // Sumamos las longitudes de todos los números para encontrar la cantidad de '-' que necesitaremos
-   // poner debajo de ellos.
-   unsigned int total_sum_num_length = 0;
-
-   for (unsigned int n = 1; n <= board_size_x; ++n)
-   {
-      // Inv: hemos sumado las longitudes de 'n' números.
-      total_sum_num_length += count_digits(n);
-   }
-
-   // Imprimimos la línea entera ya sabiendo la cantidad de '-' que necesitaremos tanto
-   // para los dobles espacios en blanco para cada número de la leyenda y la cantidad de '-'
-   // que van debajo de cada número, lo que nos da la línea entera.
-   slash_line += string(total_sum_num_length + (board_size_x - 1) * 2, '-');
+   slash_line += string(count_digits(board_size_y) + 2, ' ');
+   slash_line += string(3 * board_size_x - 1, '-');
 
    return slash_line;
 }
@@ -110,12 +99,15 @@ string gen_horizontal_line(unsigned int board_size_x, unsigned int board_size_y)
 // Post:
 void print_top_legend(unsigned int board_size_x, unsigned int board_size_y)
 {
-   // Restamos 1 por que ya hemos añadido un espacio con el primer elemento de la leyenda.
-   cout << string(count_digits(board_size_y) - 1, '-');
+   // Añadimos espaciado a la leyenda para que encaje donde debe.
+   cout << string(count_digits(board_size_x), ' ');
 
    // Inv: hemos impreso i-1 leyendas para las colummas del tablero.
    for (unsigned int i = 1; i <= board_size_x; ++i)
-      cout << " " << i << " ";
+      if (i <= 10)
+         cout << "  " << i;
+      else
+         cout << ' ' << i;
 
    cout << endl;
 }
@@ -134,7 +126,7 @@ void print_bottom_clues(unsigned int board_size_x, unsigned int board_size_y, co
       // Añadimos el espacio en blanco que separa las líneas de la leyenda de las filas. Le restamos 2
       // para compensar con el primer elemento de las columnas, ya que cada elemento imprime 2 espacios
       // a la izquierda.
-      cout << string(count_digits(board_size_y - 2), ' ');
+      cout << string(count_digits(board_size_y), ' ');
 
       for (unsigned int j = 0; j < col_clues.size(); ++j)
       {
@@ -165,22 +157,28 @@ void print_core_board(CharMatrix &board, const UIntMatrix &row_clues, const UInt
    for (unsigned int y = 0; y < board.size(); ++y)
    {
       // Inv: Hemos impreso y-1 filas del tablero.
-      unsigned int num_length = count_digits(y);
+      unsigned int num_digit_length = count_digits(y + 1);
+      unsigned int board_digit_length = count_digits(board.size() + 1);
 
       // Adaptamos la etiqueta de la fila para que siempre tenga el mismo
       // tamaño de espacios/texto independientemente de la cantidad de cifras
       // que tenga el número.
-      cout << string(board.size() - num_length, ' ') << (y + 1);
+      cout << string(board_digit_length - num_digit_length, ' ') << (y + 1) << " |";
 
-      // Inv: hemos impreso x-1 elementos de la fila 'y' del tablero.
       for (unsigned int x = 0; x < board[0].size(); ++x)
-         cout << ' ' << board[y][x] << ' ';
+         // Inv: hemos impreso x-1 elementos de la fila 'y' del tablero.
+         if (x + 1 < board[0].size())
+            cout << board[y][x] << "  ";
+         else
+            cout << board[y][x] << ' ';
 
       cout << "|";
 
       // Inv: hemos impreso i-1 elementos de la pista para la columna 'y'.
       for (unsigned int i = 0; i < row_clues[y].size(); ++i)
          cout << ' ' << row_clues[y][i];
+
+      cout << endl;
    }
 }
 
@@ -214,6 +212,7 @@ void do_action_AE(bool check, unsigned int selected_x, unsigned int selected_y, 
 {
    if (check and board[selected_y][selected_x] == '.')
       board[selected_y][selected_x] = 'X';
+
    else if (!check and board[selected_y][selected_x] == 'X')
       board[selected_y][selected_x] = '.';
 }
@@ -276,68 +275,120 @@ void do_action_R(unsigned int &action_counter, CharMatrix &board)
 
 // _________ COMPROBACIÓN DEL TABLERO _________
 
-// Comprueba si las filas del nonograma cumplen con sus pistas.
-//
-// Pre: una matriz CharMatrix que contenga el tablero y una matriz UIntMatrix que contenga las pistas para
-// las filas. También un booleano que indique si queremos revisar las filas o las columnas (False - Filas, True - Columnas).
-// Pos: devuelve un boleano True en caso de que haya sido resuelto correctamente y False en caso
-// contrario.
-bool check_nono_rows_or_cols(const UIntMatrix &row_clues, CharMatrix &board, bool row_or_col)
+bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned int line_index, bool is_row)
 {
-   bool solved = true; // Asumiremos que las filas han sido resueltas por defecto.
+   int current_group_index = -1; // Aún no hemos alcanzado ningún grupo.
+   unsigned int group_marked_tiles = 0;
+   bool solved = true; // Asumiremos por defecto que esta fila o columna es correcta.
+
    unsigned int x = 0, y = 0;
-
-   while (solved and y < board.size())
+   while (solved and y < board.size() and x < board[0].size())
    {
-      // Inv: 
+      // Obtenemos el contenido de la casilla.
+      char current_tile;
 
-      x = 0;
-
-      unsigned int current_group = 0;
-      unsigned int group_marked_tiles = 0;
-
-      while (solved and x < board[0].size())
+      if (is_row) current_tile = board[line_index][x];
+      else current_tile = board[y][line_index];
+      
+      if (current_tile == 'X')
       {
-         // Inv:
+         ++group_marked_tiles;
 
-         if (current_group < row_clues[y].size())
+         // Si estamos en el primer elemento o detrás hay un punto, avanzamos el índice del grupo. Todo este
+         // lio es para garantizar que estamos buscando bien tanto si estamos en modo fila como columna.
+         if ((is_row and x == 0) or (!is_row and y == 0) or 
+             (is_row and board[line_index][x - 1] == '.') or 
+             (!is_row and board[y - 1][line_index] == '.'))
          {
-            if (board[y][x] == 'X')
-            {
-               ++group_marked_tiles;
+            ++current_group_index;
 
-               // Si ya es el último elemento, hacemos la revisión para el último grupo.
-               if (x + 1 == board[0].size())
-                  solved = (row_clues[y][current_group] == group_marked_tiles);
-            }
-            else if (x != 0)
+            // Si excedemos la cantidad de pistas, la línea no es válida.
+            if (current_group_index >= int(clues[line_index].size()))
             {
-               // Si hemos entrado en un espacio con punto y el anterior elemento era una X, significa
-               // que hemos salido del grupo de Xs y hay que hacer revisión de ese grupo.
-               if (board[y][x - 1] == 'X')
-               {
-                  solved = (row_clues[y][current_group] == group_marked_tiles);
-
-                  // Avanzamos el indice de grupo para buscar el siguiente.
-                  ++current_group;
-                  group_marked_tiles = 0;
-               }
+               solved = false;
+               cout << "DEBUG - Validate: hay más grupos en el tablero que en la pista." << endl;
             }
          }
-         else
-         {
-            // Hay más grupos de Xs en la fila que en la pista, por lo que está mal.
-            solved = false;
-         }
 
-         ++x;
+         // Si es el último elemento o detrás hay un punto, validamos el grupo actual.
+         if ((is_row and x == board[0].size() - 1) or 
+             (!is_row and y == board.size() - 1) or 
+             (is_row and board[line_index][x + 1] == '.') or 
+             (!is_row and board[y + 1][line_index] == '.'))
+         {
+            if (clues[line_index][current_group_index] != group_marked_tiles)
+            {
+               solved = false;
+               cout << "DEBUG - Validate: el grupo no coincide con la pista." << endl;
+            }
+            // Reiniciar el contador para el siguiente grupo.
+            group_marked_tiles = 0;
+         }
+      }
+      // Si es un punto, asegurarse de que no quedan más Xs sin validar.
+      else if (current_tile == '.')
+      {
+         if (group_marked_tiles > 0 and current_group_index < int(clues[line_index].size()))
+         {
+            if (clues[line_index][current_group_index] != group_marked_tiles)
+            {
+               solved = false;
+               cout << "DEBUG - Validate: grupo incompleto encontrado." << endl;
+            }
+            group_marked_tiles = 0;
+         }
       }
 
-      // En la fila habían menos grupos que en la pista. Restamos 1 porque 'current_group' funciona como un indice
-      // que empieza con el grupo 0, por lo que siempré irá 1 grupo por detras de la longitud total de la pista.
-      if (current_group < row_clues[y].size()-1) solved = false;
+      // Avanzar en fila/columna.
+      if (is_row)
+         ++x;
+      else
+         ++y;
+   }
 
-      ++y;
+   // Verificar si todos los grupos esperados fueron procesados.
+   if (current_group_index != int(clues[line_index].size()) - 1)
+   {
+      solved = false;
+      cout << "DEBUG - Validate: hay menos grupos en el tablero que en la pista." << endl;
+   }
+
+   // Mensaje de depuración final.
+   if (is_row and solved)
+      cout << "DEBUG - Validate: fila correcta" << endl;
+   else if (is_row and !solved)
+      cout << "DEBUG - Validate: fila NO correcta" << endl;
+   else if (!is_row and solved)
+      cout << "DEBUG - Validate: columna correcta" << endl;
+   else if (!is_row and !solved)
+      cout << "DEBUG - Validate: columna NO correcta" << endl;
+
+   return solved;
+}
+
+// Función principal para comprobar si el nonograma está resuelto
+bool is_nono_solved(const UIntMatrix &row_clues, const UIntMatrix &col_clues, CharMatrix &board)
+{
+   bool solved = true;
+
+   // _____ Comprobación de filas ______
+   unsigned int y = 0;
+   while (solved and y < board.size())
+   {
+      if (!validate_line(board, row_clues, y, true))
+         solved = false;
+      else
+         ++y;
+   }
+
+   // _____ Comprobación de columnas ______
+   unsigned int x = 0;
+   while (solved and x < board[0].size())
+   {
+      if (!validate_line(board, col_clues, x, false))
+         solved = false;
+      else
+         ++x;
    }
 
    return solved;
@@ -366,7 +417,7 @@ int main()
    bool win = false; // Para determinar si el jugador ha ganado o ha salido forzadamente.
    bool end_game = false;
 
-   while (!end_game)
+   while (!end_game and !win)
    {
       // Inv: el jugador no ha ganado el juego y tampoco ha decidido rendirse.
 
@@ -377,49 +428,76 @@ int main()
 
       if (option_letter == 'A' or option_letter == 'E')
       {
-         unsigned int x, y;
-         cin >> x >> y;
+         unsigned int y, x;
+         cin >> y >> x; // Fila y luego columna
 
          // Comprobamos si la opción era la A o la E. Ya que si era la A, siempre ibamos a pasar
          // como parámetro en 'check' un boleano True. En caso de E, siempre es False.
          bool check = (option_letter == 'A');
 
-         do_action_AE(check, x, y, board);
+         cout << "DEBUG: action AE ejecutada " << endl;
+         // Restamos 1 porque desde el punto de vista del usuario la coordenada X e Y empiezan
+         // por 1 y no 0.
+         do_action_AE(check, x - 1, y - 1, board);
+         cout << "DEBUG: action AE terminada " << endl;
       }
 
       else if (option_letter == 'B' or option_letter == 'F')
       {
          unsigned int x_start, x_end, y_start, y_end;
-         cin >> x_start >> y_start >> x_end >> y_end;
+         cin >> y_start >> x_start >> y_end >> x_end;
 
          // Comprobamos si la opción era la B o la F. Ya que si era la B, siempre ibamos a pasar
          // como parámetro en 'check' un boleano True. En caso de F, siempre es False.
          bool check = (option_letter == 'B');
 
-         do_action_BF(check, x_start, x_end, y_start, y_end, board);
+         cout << "DEBUG: action BF ejecutada " << endl;
+         do_action_BF(check, x_start - 1, x_end - 1, y_start - 1, y_end - 1, board);
+         cout << "DEBUG: action BF terminada " << endl;
       }
 
       else if (option_letter == 'R')
       {
+         cout << "DEBUG: action R ejecutada " << endl;
          do_action_R(action_counter, board);
+         cout << "DEBUG: action R terminada " << endl;
       }
 
       else if (option_letter == 'S')
       {
+         cout << "DEBUG: action S ejecutada " << endl;
          draw_game(row_clues, col_clues, board, slash_line);
+         cout << "DEBUG: action S terminada " << endl;
       }
       else
       {
          // Como todos los inputs son correctos (según la documentación), tenemos garantizado que
          // si no se ha ejecutado cualquiera de las anteriores acciones es por que el jugador ha
          // introducido una 'Z', por lo que salimos del juego.
-
          end_game = true;
       }
+
+      // Si hemos modificado el tablero, hacemos una corrección para ver si está bien.
+      if ((option_letter == 'A' or option_letter == 'B' or option_letter == 'E' or option_letter == 'F') and !end_game)
+      {
+         ++action_counter;
+
+         win = is_nono_solved(row_clues, col_clues, board);
+         if (win)
+            cout << "DEBUG: se ha resuelto el nono." << endl;
+         else
+            cout << "DEBUG: NO se ha resuelto el nono." << endl;
+      }
+      cout << "DEBUG: Action_counter = " << action_counter << endl;
    }
 
    if (win)
-      cout << "Enhorabona! Has resolt el nonograma.";
+   {
+      draw_game(row_clues, col_clues, board, slash_line);
+      cout << "Enhorabona! Has resolt el nonograma." << endl;
+   }
    else
-      "Has sortit del joc. Fins aviat!";
+      cout << "Has sortit del joc. Fins aviat!" << endl;
+
+   cout << "Nombre de moviments: " << action_counter << endl;
 }
