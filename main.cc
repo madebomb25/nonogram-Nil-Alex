@@ -274,6 +274,75 @@ void do_action_R(unsigned int &action_counter, CharMatrix &board)
 
 // Las acciones S y Z están implementadas directamente sobre main().
 
+// _________ COMPROBACIÓN DEL TABLERO _________
+
+// Comprueba si las filas del nonograma cumplen con sus pistas.
+//
+// Pre: una matriz CharMatrix que contenga el tablero y una matriz UIntMatrix que contenga las pistas para
+// las filas. También un booleano que indique si queremos revisar las filas o las columnas (False - Filas, True - Columnas).
+// Pos: devuelve un boleano True en caso de que haya sido resuelto correctamente y False en caso
+// contrario.
+bool check_nono_rows_or_cols(const UIntMatrix &row_clues, CharMatrix &board, bool row_or_col)
+{
+   bool solved = true; // Asumiremos que las filas han sido resueltas por defecto.
+   unsigned int x = 0, y = 0;
+
+   while (solved and y < board.size())
+   {
+      // Inv: 
+
+      x = 0;
+
+      unsigned int current_group = 0;
+      unsigned int group_marked_tiles = 0;
+
+      while (solved and x < board[0].size())
+      {
+         // Inv:
+
+         if (current_group < row_clues[y].size())
+         {
+            if (board[y][x] == 'X')
+            {
+               ++group_marked_tiles;
+
+               // Si ya es el último elemento, hacemos la revisión para el último grupo.
+               if (x + 1 == board[0].size())
+                  solved = (row_clues[y][current_group] == group_marked_tiles);
+            }
+            else if (x != 0)
+            {
+               // Si hemos entrado en un espacio con punto y el anterior elemento era una X, significa
+               // que hemos salido del grupo de Xs y hay que hacer revisión de ese grupo.
+               if (board[y][x - 1] == 'X')
+               {
+                  solved = (row_clues[y][current_group] == group_marked_tiles);
+
+                  // Avanzamos el indice de grupo para buscar el siguiente.
+                  ++current_group;
+                  group_marked_tiles = 0;
+               }
+            }
+         }
+         else
+         {
+            // Hay más grupos de Xs en la fila que en la pista, por lo que está mal.
+            solved = false;
+         }
+
+         ++x;
+      }
+
+      // En la fila habían menos grupos que en la pista. Restamos 1 porque 'current_group' funciona como un indice
+      // que empieza con el grupo 0, por lo que siempré irá 1 grupo por detras de la longitud total de la pista.
+      if (current_group < row_clues[y].size()-1) solved = false;
+
+      ++y;
+   }
+
+   return solved;
+}
+
 int main()
 {
    // ______ Inicialización de variables _______
@@ -313,12 +382,11 @@ int main()
 
          // Comprobamos si la opción era la A o la E. Ya que si era la A, siempre ibamos a pasar
          // como parámetro en 'check' un boleano True. En caso de E, siempre es False.
-         bool check = (option_letter == 'A'); 
+         bool check = (option_letter == 'A');
 
          do_action_AE(check, x, y, board);
+      }
 
-      } 
-      
       else if (option_letter == 'B' or option_letter == 'F')
       {
          unsigned int x_start, x_end, y_start, y_end;
@@ -350,6 +418,8 @@ int main()
       }
    }
 
-   if (win) cout << "Enhorabona! Has resolt el nonograma.";
-   else "Has sortit del joc. Fins aviat!";
+   if (win)
+      cout << "Enhorabona! Has resolt el nonograma.";
+   else
+      "Has sortit del joc. Fins aviat!";
 }
