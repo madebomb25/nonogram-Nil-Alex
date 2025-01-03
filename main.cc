@@ -121,23 +121,31 @@ void print_bottom_clues(unsigned int board_size_x, unsigned int board_size_y, co
 {
    for (unsigned int i = 0; i < find_biggest_clue_size(col_clues); ++i)
    {
-      // Inv: hemos impreso 'i' líneas de pistas para las pistas de las columnas.
-
-      // Añadimos el espacio en blanco que separa las líneas de la leyenda de las filas. Le restamos 2
-      // para compensar con el primer elemento de las columnas, ya que cada elemento imprime 2 espacios
-      // a la izquierda.
-      cout << string(count_digits(board_size_y), ' ');
+      // Inv:
+      
+      // Añadimos el espacio en blanco que separa las líneas de la leyenda de las filas.
+      cout << string(count_digits(board_size_y) + 2, ' ');
 
       for (unsigned int j = 0; j < col_clues.size(); ++j)
       {
-         // Inv: hemos impreso 'j' pistas para la línea 'i'.
+         // Inv:
+         string spacing;
 
-         cout << "  ";
+         if (j != 0)
+         {
+            // Si el número anterior tiene 2 dígitos, ponemos un solo espacio.
+            if (col_clues[j-1].size() > i and col_clues[j-1][i] >= 10)
+               spacing = " ";
+            else
+               spacing = "  "; 
+         }
 
+         // Imprimimos el número actual. Si no hay número porque no hay pista en ese punto,
+         // lo rellenamos con un espacio.
          if (i < col_clues[j].size())
-            cout << col_clues[j][i];
+            cout << spacing << col_clues[j][i];
          else
-            cout << " ";
+            cout << spacing << ' ';
       }
       cout << endl;
    }
@@ -187,14 +195,17 @@ void draw_game(const UIntMatrix &row_clues, const UIntMatrix &col_clues, CharMat
    unsigned int board_size_x = board[0].size();
    unsigned int board_size_y = board.size();
 
-   print_top_legend(board_size_x, board_size_y); // Imprimimos la leyenda de las columnas.
-   cout << slash_line << endl;                   // Imprimimos las '-'s que cierran techo del tablero.
+   // Imprimimos la leyenda de las columnas.
+   print_top_legend(board_size_x, board_size_y);
+   // Imprimimos las '-'s que cierran techo del tablero.
+   cout << slash_line << endl;
 
-   print_core_board(board, row_clues, col_clues); // Imprimimos el tablero.
+   print_core_board(board, row_clues, col_clues);
 
-   cout << slash_line << endl; // Imprimimos las '-'s que cierran el suelo del tablero.
-
+   // Imprimimos las '-'s que cierran el suelo del tablero.
+   cout << slash_line << endl;
    print_bottom_clues(board_size_x, board_size_y, col_clues);
+   cout << endl;
 }
 
 // ________ FUNCIONES DE ACCIÓN _________
@@ -284,20 +295,24 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
    unsigned int x = 0, y = 0;
    while (solved and y < board.size() and x < board[0].size())
    {
-      // Obtenemos el contenido de la casilla.
-      char current_tile;
+      // Inv:
 
-      if (is_row) current_tile = board[line_index][x];
-      else current_tile = board[y][line_index];
-      
+      // Obtenemos lo que haya en la casilla (una X o un .) dependiendo de si estamos
+      // corrigiendo por fila o columna.
+      char current_tile;
+      if (is_row)
+         current_tile = board[line_index][x];
+      else
+         current_tile = board[y][line_index];
+
       if (current_tile == 'X')
       {
          ++group_marked_tiles;
 
          // Si estamos en el primer elemento o detrás hay un punto, avanzamos el índice del grupo. Todo este
          // lio es para garantizar que estamos buscando bien tanto si estamos en modo fila como columna.
-         if ((is_row and x == 0) or (!is_row and y == 0) or 
-             (is_row and board[line_index][x - 1] == '.') or 
+         if ((is_row and x == 0) or (!is_row and y == 0) or
+             (is_row and board[line_index][x - 1] == '.') or
              (!is_row and board[y - 1][line_index] == '.'))
          {
             ++current_group_index;
@@ -306,20 +321,18 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
             if (current_group_index >= int(clues[line_index].size()))
             {
                solved = false;
-               cout << "DEBUG - Validate: hay más grupos en el tablero que en la pista." << endl;
             }
          }
 
          // Si es el último elemento o detrás hay un punto, validamos el grupo actual.
-         if ((is_row and x == board[0].size() - 1) or 
-             (!is_row and y == board.size() - 1) or 
-             (is_row and board[line_index][x + 1] == '.') or 
+         if ((is_row and x == board[0].size() - 1) or
+             (!is_row and y == board.size() - 1) or
+             (is_row and board[line_index][x + 1] == '.') or
              (!is_row and board[y + 1][line_index] == '.'))
          {
             if (clues[line_index][current_group_index] != group_marked_tiles)
             {
                solved = false;
-               cout << "DEBUG - Validate: el grupo no coincide con la pista." << endl;
             }
             // Reiniciar el contador para el siguiente grupo.
             group_marked_tiles = 0;
@@ -333,7 +346,6 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
             if (clues[line_index][current_group_index] != group_marked_tiles)
             {
                solved = false;
-               cout << "DEBUG - Validate: grupo incompleto encontrado." << endl;
             }
             group_marked_tiles = 0;
          }
@@ -348,20 +360,7 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
 
    // Verificar si todos los grupos esperados fueron procesados.
    if (current_group_index != int(clues[line_index].size()) - 1)
-   {
       solved = false;
-      cout << "DEBUG - Validate: hay menos grupos en el tablero que en la pista." << endl;
-   }
-
-   // Mensaje de depuración final.
-   if (is_row and solved)
-      cout << "DEBUG - Validate: fila correcta" << endl;
-   else if (is_row and !solved)
-      cout << "DEBUG - Validate: fila NO correcta" << endl;
-   else if (!is_row and solved)
-      cout << "DEBUG - Validate: columna correcta" << endl;
-   else if (!is_row and !solved)
-      cout << "DEBUG - Validate: columna NO correcta" << endl;
 
    return solved;
 }
@@ -435,11 +434,9 @@ int main()
          // como parámetro en 'check' un boleano True. En caso de E, siempre es False.
          bool check = (option_letter == 'A');
 
-         cout << "DEBUG: action AE ejecutada " << endl;
          // Restamos 1 porque desde el punto de vista del usuario la coordenada X e Y empiezan
          // por 1 y no 0.
          do_action_AE(check, x - 1, y - 1, board);
-         cout << "DEBUG: action AE terminada " << endl;
       }
 
       else if (option_letter == 'B' or option_letter == 'F')
@@ -451,23 +448,17 @@ int main()
          // como parámetro en 'check' un boleano True. En caso de F, siempre es False.
          bool check = (option_letter == 'B');
 
-         cout << "DEBUG: action BF ejecutada " << endl;
          do_action_BF(check, x_start - 1, x_end - 1, y_start - 1, y_end - 1, board);
-         cout << "DEBUG: action BF terminada " << endl;
       }
 
       else if (option_letter == 'R')
       {
-         cout << "DEBUG: action R ejecutada " << endl;
          do_action_R(action_counter, board);
-         cout << "DEBUG: action R terminada " << endl;
       }
 
       else if (option_letter == 'S')
       {
-         cout << "DEBUG: action S ejecutada " << endl;
          draw_game(row_clues, col_clues, board, slash_line);
-         cout << "DEBUG: action S terminada " << endl;
       }
       else
       {
@@ -481,14 +472,8 @@ int main()
       if ((option_letter == 'A' or option_letter == 'B' or option_letter == 'E' or option_letter == 'F') and !end_game)
       {
          ++action_counter;
-
          win = is_nono_solved(row_clues, col_clues, board);
-         if (win)
-            cout << "DEBUG: se ha resuelto el nono." << endl;
-         else
-            cout << "DEBUG: NO se ha resuelto el nono." << endl;
       }
-      cout << "DEBUG: Action_counter = " << action_counter << endl;
    }
 
    if (win)
