@@ -95,8 +95,8 @@ string gen_horizontal_line(unsigned int board_size_x, unsigned int board_size_y)
 }
 
 // Imprime la parte superior del tablero.
-// Pre:
-// Post:
+// Pre: el tamaño del tablero en el eje X (columnas) como un número natural y otro para el tamaño del tablero en el eje Y (filas).
+// Post: no devuelve nada, solo imprime la leyenda de la parte superior.
 void print_top_legend(unsigned int board_size_x, unsigned int board_size_y)
 {
    // Añadimos espaciado a la leyenda para que encaje donde debe.
@@ -104,11 +104,17 @@ void print_top_legend(unsigned int board_size_x, unsigned int board_size_y)
 
    // Inv: hemos impreso i-1 leyendas para las colummas del tablero.
    for (unsigned int i = 1; i <= board_size_x; ++i)
+   {
       if (i <= 10)
          cout << "  " << i;
       else
          cout << ' ' << i;
 
+      if (i == board_size_x)
+      {
+         cout << ' ';
+      }
+   }
    cout << endl;
 }
 
@@ -121,23 +127,23 @@ void print_bottom_clues(unsigned int board_size_x, unsigned int board_size_y, co
 {
    for (unsigned int i = 0; i < find_biggest_clue_size(col_clues); ++i)
    {
-      // Inv:
-      
+      // Inv: hemos impreso 'i' filas de grupos/elementos de las pistas.
+
       // Añadimos el espacio en blanco que separa las líneas de la leyenda de las filas.
       cout << string(count_digits(board_size_y) + 2, ' ');
 
       for (unsigned int j = 0; j < col_clues.size(); ++j)
       {
-         // Inv:
+         // Inv: hemos impreso 'j' pistas de la fila.
          string spacing;
 
          if (j != 0)
          {
             // Si el número anterior tiene 2 dígitos, ponemos un solo espacio.
-            if (col_clues[j-1].size() > i and col_clues[j-1][i] >= 10)
+            if (col_clues[j - 1].size() > i and col_clues[j - 1][i] >= 10)
                spacing = " ";
             else
-               spacing = "  "; 
+               spacing = "  ";
          }
 
          // Imprimimos el número actual. Si no hay número porque no hay pista en ese punto,
@@ -165,6 +171,7 @@ void print_core_board(CharMatrix &board, const UIntMatrix &row_clues, const UInt
    for (unsigned int y = 0; y < board.size(); ++y)
    {
       // Inv: Hemos impreso y-1 filas del tablero.
+
       unsigned int num_digit_length = count_digits(y + 1);
       unsigned int board_digit_length = count_digits(board.size() + 1);
 
@@ -286,6 +293,10 @@ void do_action_R(unsigned int &action_counter, CharMatrix &board)
 
 // _________ COMPROBACIÓN DEL TABLERO _________
 
+// Valida una 'línea', que sería una fila o una columna dependiendo del modo de corrección que hayamos elegido.
+// Pre: una matriz CharMatrix que represente el tablero (board), una matriz UIntMatrix que contenga las pistas a revisar para la fila (clues), un número natural
+// que nos haga de indice de que fila queremos comprobar (line_index) y un boleano para seleccionar el modo de corrección (is_row).
+// Post: devuelve un boleano indicando si la fila es correcta (True) o no (False).
 bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned int line_index, bool is_row)
 {
    int current_group_index = -1; // Aún no hemos alcanzado ningún grupo.
@@ -295,7 +306,7 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
    unsigned int x = 0, y = 0;
    while (solved and y < board.size() and x < board[0].size())
    {
-      // Inv:
+      // Inv: hemos validado 'y' grupos si is_row es True y 'x' grupos si is_row es False.
 
       // Obtenemos lo que haya en la casilla (una X o un .) dependiendo de si estamos
       // corrigiendo por fila o columna.
@@ -366,6 +377,8 @@ bool validate_line(const CharMatrix &board, const UIntMatrix &clues, unsigned in
 }
 
 // Función principal para comprobar si el nonograma está resuelto
+// Pre: una matriz UIntMatrix con las pistas de fila, una matriz UIntMatrix con las de columna y una matriz CharMatrix para el tablero.
+// Pos: devuelve un boleano True en caso de que el Nonograma haya sido resuelto correctamente y un False en caso contrario.
 bool is_nono_solved(const UIntMatrix &row_clues, const UIntMatrix &col_clues, CharMatrix &board)
 {
    bool solved = true;
@@ -374,6 +387,7 @@ bool is_nono_solved(const UIntMatrix &row_clues, const UIntMatrix &col_clues, Ch
    unsigned int y = 0;
    while (solved and y < board.size())
    {
+      // Inv: hemos válidado 'y' filas.
       if (!validate_line(board, row_clues, y, true))
          solved = false;
       else
@@ -384,6 +398,7 @@ bool is_nono_solved(const UIntMatrix &row_clues, const UIntMatrix &col_clues, Ch
    unsigned int x = 0;
    while (solved and x < board[0].size())
    {
+      // Inv: hemos válidado 'x' filas.
       if (!validate_line(board, col_clues, x, false))
          solved = false;
       else
